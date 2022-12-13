@@ -13,10 +13,6 @@ export interface IUnpackedEthJws {
     sig: Uint8Array;
 }
 /**
- * u8a => base64url
- */
-declare function bytesToBase64Url(input: Uint8Array): string;
-/**
  * Computes the JWS payload by converting the raw payload to a canonical JSON, then to base64url.
  */
 declare function encodePayload(payloadRaw: any): string;
@@ -54,8 +50,8 @@ export declare const ethJws: {
     utils: {
         encodePayload: typeof encodePayload;
         encodeHeader: typeof encodeHeader;
-        bytesToBase64Url: typeof bytesToBase64Url;
         unpack: typeof unpack;
+        bytesToBase64Url: (u8a: Uint8Array) => string;
     };
 };
 export {};

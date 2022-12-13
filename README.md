@@ -88,7 +88,8 @@ ethJws.function verify(args: {
 ### Other features
 
 #### ethJws.utils.bytesToBase64Url(input:Uint8Array): string
-Converts u8a => base64url
+Converts u8a => base64url               
+**@deprecated**: use encoders.u8a.to_b64url() instead.
 
 #### ethJws.utils.encodeHeader(headerRaw:IEthJwsHeader): string
 Computes the JWS header by converting the raw payload to a canonical JSON, then to base64url.
@@ -114,6 +115,30 @@ Converts a JWK containing an Ethereum public key to a hex-encoded Ethereum uncom
 #### ethJwk.publicKey.toEthereumAddress(jwk: IPublicKeyJwk): string
 Computes an Ethereum address from an JWK containing an Ethereum public key.
 
+#### encoders.base64.to_base64url(b64: string): string
+Converts base64 to base64url.
+
+#### encoders.base64Url.to_base64(b64url: string, padding = true): string
+Converts base64url to base64. Second argument (padding) is true by default. When true, the result will always represent a multiple of 4 bytes.
+
+#### encoders.base64Url.to_u8a(b64url: string): Uint8Array
+Decodes base64url to Uint8Array.
+
+#### encoders.u8a.to_b64url(u8a: Uint8Array): string
+Encodes Uint8Array to base64url.
+
+#### encoders.u8a.to_hex(u8a: Uint8Array): string
+Converts Uint8Array to hex string.
+
+#### encoders.u8a.to_string(u8a: Uint8Array): string
+Converts Uint8Array (representing an utf-8 string) to string.
+
+#### encoders.string.to_u8a(str: string): Uint8Array
+Converts a string to Uint8Array.
+
+#### encoders.ethereumKey.to_u8a(key: string | Uint8Array, keyLen: KeyLen): Uint8Array
+Converts a common hex string key to Uint8Array. keyLen indicates the expected bytes for the key.
+A common Ethereum private key is 32 bytes long, while an Ethereum public key is 65 bytes long.
 
 ## Commands for lib contributors
 
@@ -136,24 +161,7 @@ npm run test:watch // launch tests in watch mode
 npm run test:cov // launch tests coverage
 ```
 
-v 1.0.0 Tests coverage
-
-
-File                | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
---------------------|---------|----------|---------|---------|-------------------
-All files           |   89.39 |    81.25 |   86.36 |   96.46 |                   
- src                |       0 |      100 |       0 |       0 |                   
-  index.ts          |       0 |      100 |       0 |       0 | 1-4               
- src/canonical-json |     100 |      100 |     100 |     100 |                   
-  index.ts          |     100 |      100 |     100 |     100 |                   
- src/eth-jwk        |     100 |      100 |     100 |     100 |                   
-  index.ts          |     100 |      100 |     100 |     100 |                   
- src/eth-jws        |   87.83 |       50 |      90 |    98.3 |                   
-  index.ts          |   87.83 |       50 |      90 |    98.3 | 34                
- src/utils          |    90.9 |    66.66 |     100 |     100 |                   
-  index.ts          |    90.9 |    66.66 |     100 |     100 | 17
-
-
+**v1.1.0 test coverage is > 90%.**
 
 ## Contact
 **block0**

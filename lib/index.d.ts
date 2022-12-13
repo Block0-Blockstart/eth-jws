@@ -1,4 +1,5 @@
 import { ethJwk } from './eth-jwk';
 import { ethJws } from './eth-jws';
-export { ethJwk, ethJws };
+import { encoders } from './encoders';
+export { ethJwk, ethJws, encoders };
 //# sourceMappingURL=index.d.ts.map

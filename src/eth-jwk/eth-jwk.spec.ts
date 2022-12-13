@@ -8,7 +8,7 @@ describe('eth-jwk', () => {
   const x1 = 'sInjZsKfkYr39KdSBdYvH5uSqDAUyuDNVwydwIl8vGw';
   const y1 = 'yPZ9hQXfPFTDh0kJGmUSsq5g-vznDBTvR4D5pw2dTCo';
   const invalidPubK1 =
-  '0x03b089e366c29f918af7f4a75205d62f1f9b92a83014cae0cd570c9dc0897cbc6cc8f67d8505df3c54c38749091a6512b2ae60fafce70c14ef4780f9a70d9d4c2a';
+    '0x03b089e366c29f918af7f4a75205d62f1f9b92a83014cae0cd570c9dc0897cbc6cc8f67d8505df3c54c38749091a6512b2ae60fafce70c14ef4780f9a70d9d4c2a';
 
   describe('fromHexPublicKey', () => {
     it('should generate a result with valid public key', () => {
@@ -21,10 +21,10 @@ describe('eth-jwk', () => {
       const res = ethJwk.publicKey.fromHexPublicKey(pubK1);
       expect(res).toEqual({ kty: 'EC', crv: 'secp256k1', x: x1, y: y1 });
     });
-  
+
     it('should throw with invalid public key header byte', () => {
       expect(() => ethJwk.publicKey.fromHexPublicKey(invalidPubK1)).toThrow();
-    });  
+    });
   });
 
   describe('fromHexPrivateKey', () => {
@@ -37,7 +37,7 @@ describe('eth-jwk', () => {
       const res1 = ethJwk.publicKey.fromHexPublicKey(pubK1);
       const res2 = ethJwk.publicKey.fromHexPrivateKey(privK1);
       expect(res1).toEqual(res2);
-    });  
+    });
   });
 
   describe('toHexPublicKey', () => {
@@ -48,19 +48,19 @@ describe('eth-jwk', () => {
 
     it('should throw on malformed jwk', () => {
       expect(() => ethJwk.publicKey.toHexPublicKey({ kty: 'RSA', crv: 'secp256k1', x: x1, y: y1 } as any)).toThrow();
-    });  
+    });
 
     it('should encode than reverse many times', () => {
       const pubks = [];
       const jwks = [];
       const n = 5;
-  
+
       for (let i = 0; i < n; i++) {
         const k = Wallet.createRandom().publicKey;
         pubks.push(k);
         jwks.push(ethJwk.publicKey.fromHexPublicKey(k));
       }
-  
+
       for (let i = 0; i < n; i++) {
         const r = ethJwk.publicKey.toHexPublicKey(jwks[i]);
         expect(r).toEqual(pubks[i]);
@@ -76,7 +76,7 @@ describe('eth-jwk', () => {
       expect(reversedAddress).toBe(address);
     });
   });
- 
+
   describe('checkFormat', () => {
     it('should return false', () => {
       const res = ethJwk.publicKey.checkFormat({ kty: 'EC', crv: 'secp256k1', x: x1, y: y1 });

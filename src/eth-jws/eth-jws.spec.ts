@@ -48,6 +48,13 @@ describe('eth-jws', () => {
       const payload = BigInt(123);
       expect(() => ethJws.create({ payload, privateKey: privK1 })).toThrow();
     });
+
+    it('should throw with a payload that would be parsed to undefined', () => {
+      const payload = undefined;
+      expect(() => ethJws.create({ payload, privateKey: privK1 })).toThrow(
+        'encodeAny(): input conversion to json results in null'
+      );
+    });
   });
 
   describe('verify', () => {
@@ -112,14 +119,14 @@ describe('eth-jws', () => {
       const fakeToken = headerRebuildB64 + '.' + fakePayloadB64 + '.' + sigB64;
 
       // it should be invalid
-      expect(()=> ethJws.verify({ jws: fakeToken })).toThrow();
+      expect(() => ethJws.verify({ jws: fakeToken })).toThrow();
     });
   });
 
   describe('unpack', () => {
     it('should not throw on well-formed token', () => {
       const jws = ethJws.create({ payload: 'Hello', privateKey: privK1 });
-      expect(()=>ethJws.utils.unpack(jws)).not.toThrow();
+      expect(() => ethJws.utils.unpack(jws)).not.toThrow();
       const res = ethJws.utils.unpack(jws);
       expect(res).toBeDefined();
     });
@@ -131,28 +138,26 @@ describe('eth-jws', () => {
       // payload
       const payload = 'Hello';
       const payloadB64 = ethJws.utils.encodePayload(payload);
-      
+
       // it should be invalid
-      expect(()=> ethJws.utils.unpack('...')).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64)).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '.')).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '..')).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64)).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.')).toThrow();
-      expect(()=> ethJws.utils.unpack('.' + payloadB64 + '.')).toThrow();
-      expect(()=> ethJws.utils.unpack('.' + payloadB64 + '.' + 'abcd')).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + '1234')).toThrow();
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + 'abcd')).toThrow();      
+      expect(() => ethJws.utils.unpack('...')).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64)).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.')).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '..')).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64)).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.')).toThrow();
+      expect(() => ethJws.utils.unpack('.' + payloadB64 + '.')).toThrow();
+      expect(() => ethJws.utils.unpack('.' + payloadB64 + '.' + 'abcd')).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + '1234')).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + 'abcd')).toThrow();
     });
-
-
 
     it('should throw on malformed token (bad header)', () => {
       const jws = ethJws.create({ payload: 'Hello', privateKey: privK1 });
-      const {payloadB64, sigB64} = ethJws.utils.unpack(jws);
+      const { payloadB64, sigB64 } = ethJws.utils.unpack(jws);
 
       const header = { alg: 'ES256K', jwk: ethJwk.publicKey.fromHexPublicKey(pubK1) };
-      const header1 = { alg: 'ES256K' };      
+      const header1 = { alg: 'ES256K' };
       const header2 = { lol: 'ES256K', jwk: ethJwk.publicKey.fromHexPublicKey(pubK1) };
       const header3 = { alg: 'LOL', jwk: ethJwk.publicKey.fromHexPublicKey(pubK1) };
 
@@ -161,27 +166,26 @@ describe('eth-jws', () => {
       const header2B64 = ethJws.utils.encodeHeader(header2 as any);
       const header3B64 = ethJws.utils.encodeHeader(header3 as any);
 
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + sigB64)).not.toThrow();
-      expect(()=> ethJws.utils.unpack(header1B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
-      expect(()=> ethJws.utils.unpack(header2B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
-      expect(()=> ethJws.utils.unpack(header3B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + sigB64)).not.toThrow();
+      expect(() => ethJws.utils.unpack(header1B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
+      expect(() => ethJws.utils.unpack(header2B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
+      expect(() => ethJws.utils.unpack(header3B64 + '.' + payloadB64 + '.' + sigB64)).toThrow();
     });
 
     it('should throw on malformed token (bad sig)', () => {
       const jws = ethJws.create({ payload: 'Hello', privateKey: privK1 });
-      const {headerB64, payloadB64, sigB64} = ethJws.utils.unpack(jws);
+      const { headerB64, payloadB64, sigB64 } = ethJws.utils.unpack(jws);
 
       const badSigB64 = sigB64.substring(0, sigB64.length - 1);
 
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + badSigB64)).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + payloadB64 + '.' + badSigB64)).toThrow();
     });
 
     it('should throw on malformed token (unparseable payload)', () => {
       const jws = ethJws.create({ payload: 'Hello', privateKey: privK1 });
-      const {headerB64, sigB64} = ethJws.utils.unpack(jws);
+      const { headerB64, sigB64 } = ethJws.utils.unpack(jws);
 
-      expect(()=> ethJws.utils.unpack(headerB64 + '.' + '13az1d' + '.' + sigB64)).toThrow();
+      expect(() => ethJws.utils.unpack(headerB64 + '.' + '13az1d' + '.' + sigB64)).toThrow();
     });
-
   });
 });

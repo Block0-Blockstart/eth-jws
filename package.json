@@ -26,8 +26,9 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"
   },
-  "keywords": [], 
+  "keywords": [],
   "dependencies": {
+    "@ethersproject/base64": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
     "@ethersproject/transactions": "^5.7.0",
     "@ethersproject/wallet": "^5.7.0",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.2.3",
+    "@typescript-eslint/eslint-plugin": "^5.46.1",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",

@@ -3,10 +3,11 @@ import { keccak_256 } from '@noble/hashes/sha3';
 import { signSync, utils, verify as secpVerify } from '@noble/secp256k1';
 import { hmac } from '@noble/hashes/hmac';
 import { sha256 } from '@noble/hashes/sha256';
-import { KeyLen, keyToBytes } from '../utils';
-import { ethJwk, IPublicKeyJwk } from '../eth-jwk';
+import { encoders, KeyLen } from '../encoders';
+import { IPublicKeyJwk, ethJwk } from '../eth-jwk';
 
 utils.hmacSha256Sync = (key, ...msgs) => hmac(sha256, key, utils.concatBytes(...msgs));
+/* istanbul ignore next */
 utils.sha256Sync = (...msgs) => sha256(utils.concatBytes(...msgs));
 
 export interface IEthJwsHeader {
@@ -27,21 +28,13 @@ export interface IUnpackedEthJws {
 const ES256K = 'ES256K';
 
 /**
- * u8a => base64url
- */
-function bytesToBase64Url(input: Uint8Array): string {
-  if (!(input instanceof Uint8Array)) {
-    throw new Error('bytesToBase64Url() requires a u8a as input.');
-  }
-  return Buffer.from(input).toString('base64url');
-}
-
-/**
  * input => canonical JSON => base64Url
  */
 function encodeAny(input: any): string {
-  const u8aCanonical = new TextEncoder().encode(toCanonicalJson(input));
-  return bytesToBase64Url(u8aCanonical);
+  const canonicalJson = toCanonicalJson(input);
+  if (!canonicalJson) throw new Error('encodeAny(): input conversion to json results in null');
+  const u8aCanonical = encoders.string.to_u8a(canonicalJson);
+  return encoders.u8a.to_b64url(u8aCanonical);
 }
 
 /**
@@ -77,7 +70,7 @@ function sign({
   // recovered: false means that we don't get the recovery number (we no more use recoverable signatures in this lib)
   const bytesSig = signSync(sha256Hash, privateKey, { canonical: true, recovered: false, der: false });
   // final result is BASE64URL(JWS Signature)
-  return bytesToBase64Url(bytesSig);
+  return encoders.u8a.to_b64url(bytesSig);
 }
 
 /**
@@ -89,7 +82,7 @@ function create({ payload, privateKey }: { payload: any; privateKey: string }) {
   const header: IEthJwsHeader = { alg: ES256K, jwk: ethJwk.publicKey.fromHexPrivateKey(privateKey) };
   const headerB64 = encodeHeader(header);
   const payloadB64 = encodePayload(payload);
-  const bytesKey = keyToBytes(privateKey, KeyLen.ETHEREUM_PRIVATE_KEY);
+  const bytesKey = encoders.ethereumKey.to_u8a(privateKey, KeyLen.ETHEREUM_PRIVATE_KEY);
   const signatureB64 = sign({ payloadB64, headerB64, privateKey: bytesKey });
   return `${headerB64}.${payloadB64}.${signatureB64}`;
 }
@@ -104,7 +97,7 @@ function verify(args: { jws: string; publicKey?: string }) {
   const { headerB64, header, payloadB64, payload, sig } = unpack(args.jws);
   let publicKey = args.publicKey;
   if (!publicKey) publicKey = ethJwk.publicKey.toHexPublicKey(header.jwk);
-  const bytesKey = keyToBytes(publicKey, KeyLen.ETHEREUM_PUBLIC_KEY);
+  const bytesKey = encoders.ethereumKey.to_u8a(publicKey, KeyLen.ETHEREUM_PUBLIC_KEY);
   const sigPayload = new TextEncoder().encode(headerB64 + '.' + payloadB64);
   const sha256Hash = keccak_256(sigPayload);
   // strict: true means the signature is meant to be compatible with libsecp256k1
@@ -129,7 +122,7 @@ function unpack(jws: string): IUnpackedEthJws {
   let header: IEthJwsHeader;
 
   try {
-    const u8aHeader = Buffer.from(headerB64, 'base64url');
+    const u8aHeader = encoders.base64Url.to_u8a(headerB64);
     const parsed = JSON.parse(new TextDecoder().decode(u8aHeader));
     if (Object.keys(parsed).length < 2) throw new Error();
     if (parsed.alg !== ES256K) throw new Error();
@@ -139,12 +132,12 @@ function unpack(jws: string): IUnpackedEthJws {
     throw new Error('Invalid JWS: invalid header.');
   }
 
-  const sig = Buffer.from(sigB64, 'base64url');
+  const sig = encoders.base64Url.to_u8a(sigB64);
   if (sig.length !== 64) throw new Error('Invalid JWS: bad signature length.');
 
   let payload: any;
   try {
-    payload = JSON.parse(new TextDecoder().decode(Buffer.from(payloadB64, 'base64url')));
+    payload = JSON.parse(encoders.u8a.to_string(encoders.base64Url.to_u8a(payloadB64)));
   } catch (e) {
     throw new Error('Invalid JWS: payload is not supported by JWS spec.');
   }
@@ -152,13 +145,19 @@ function unpack(jws: string): IUnpackedEthJws {
   return { headerB64, header, payloadB64, payload, sigB64, sig };
 }
 
+/**
+ * @deprecated
+ * Use encoders.u8a.to_b64url() instead.
+ */
+const bytesToBase64Url = encoders.u8a.to_b64url;
+
 export const ethJws = {
   create,
   verify,
   utils: {
     encodePayload,
     encodeHeader,
-    bytesToBase64Url,
     unpack,
+    bytesToBase64Url,
   },
 };

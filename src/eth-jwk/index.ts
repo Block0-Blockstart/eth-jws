@@ -1,6 +1,6 @@
 import { concatBytes } from '@noble/hashes/utils';
 import { Wallet } from '@ethersproject/wallet';
-import { KeyLen, keyToBytes } from '../utils';
+import { KeyLen, encoders } from '../encoders';
 import { computeAddress } from '@ethersproject/transactions';
 
 /* 
@@ -34,7 +34,7 @@ function hexPrivateKeyToJwkPublicKey(hexPrivateKey: string): IPublicKeyJwk {
  * Computes a JWK containing an Ethereum public key, from a hex-encoded Ethereum uncompressed public key (with or without '0x' prefix).
  */
 function hexPublicKeyToJwkPublicKey(hexPublicKey: string): IPublicKeyJwk {
-  const pubK = keyToBytes(hexPublicKey, KeyLen.ETHEREUM_PUBLIC_KEY);
+  const pubK = encoders.ethereumKey.to_u8a(hexPublicKey, KeyLen.ETHEREUM_PUBLIC_KEY);
   const header = pubK[0];
   // the first byte is always 0x04, which means the key is uncompressed, with 32 bytes x and 32 bytes y
   if (header !== 0x04) throw new Error('hexPublicKeyToJws: expected 65 bytes with header byte = 0x04');
@@ -44,8 +44,8 @@ function hexPublicKeyToJwkPublicKey(hexPublicKey: string): IPublicKeyJwk {
   return {
     kty: 'EC',
     crv: 'secp256k1',
-    x: Buffer.from(x).toString('base64url'),
-    y: Buffer.from(y).toString('base64url'),
+    x: encoders.u8a.to_b64url(x),
+    y: encoders.u8a.to_b64url(y),
   };
 }
 
@@ -54,11 +54,11 @@ function hexPublicKeyToJwkPublicKey(hexPublicKey: string): IPublicKeyJwk {
  */
 function jwkPublicKeyToHexPublicKey(jwk: IPublicKeyJwk): string {
   if (!checkPublicJwkFormat(jwk)) throw new Error('Invalid JWK');
-  const x = Buffer.from(jwk.x, 'base64url');
-  const y = Buffer.from(jwk.y, 'base64url');
+  const x = encoders.base64Url.to_u8a(jwk.x);
+  const y = encoders.base64Url.to_u8a(jwk.y);
   const header = new Uint8Array([0x04]);
-  const flattened = Buffer.from(concatBytes(header, x, y));
-  return '0x' + flattened.toString('hex');
+  const flattened = concatBytes(header, x, y);
+  return encoders.u8a.to_hex(flattened);
 }
 
 /**
